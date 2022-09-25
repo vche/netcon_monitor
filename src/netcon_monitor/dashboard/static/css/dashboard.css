@@ -1,0 +1,129 @@
+body {
+	background: linear-gradient(to bottom,#3c3c3c 0,#222 100%);
+}
+
+
+/* Nav bar styling */
+nav {
+    background: black;
+}
+#page-content { padding-top: 75px; }
+
+/* Loading spinner styling */
+#loadsign {
+	margin:80px;
+	text-align:center;
+}
+#loadsign .spinner-border { width: 3rem; height: 3rem; }
+#last_update { font-size: smaller; }
+
+/* Dashboard cards styling */
+.dashboard-card-collapse, .dashboard-card-collapse:hover { color: white; }
+
+.cat-header {
+	letter-spacing: -1px;
+    text-transform: uppercase;
+	color: white;
+	font-size: 18px;
+	margin-top:10px;
+	margin-bottom:10px;
+}
+
+.pull-right { float: right !important; }
+.dashboard-badge.black { border-top: 4px solid #0F1214; }
+.dashboard-badge.gray { border-top: 4px solid #212529; }
+.dashboard-badge.sucess { border-top: 4px solid #198754; }
+.dashboard-badge.failure { border-top: 4px solid #dc3545; }
+.dashboard-badge.warning { border-top: 4px solid #ffc107; }
+.dashboard-badge.info { border-top: 4px solid #0dcaf0; }
+
+.dashboard-badge {
+    background: #FFF;
+    color: rgb(36, 36, 36);
+    font-weight: normal;
+    margin-top: 5px;
+    padding: 5px;
+}
+
+.col-title {
+    font-size: 85%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 1px 1px 0 #fff;
+    white-space: nowrap;
+    width: 100%;
+}
+
+.dashboard-badge-value {padding-top:0px;}
+
+.dashboard-card { padding:0px; margin:0px; }
+.dashboard-card-header { margin:0px; }
+.dashboard-card-graph { border-bottom: 1px solid #AAAA; padding-bottom: 10px; }
+.dashboard-card-table { padding-top: 10px; }
+
+/* #page-content {display:none;} */
+
+.dashboard-card-table table thead, #db_modal table thead {
+	color: #198754;
+}
+
+.dashboard-card-table table, #db_modal table {
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+	font-size: smaller;
+}
+
+.db-hdr .btn, .db-hdr label, .db-hdr .dataTables_info {
+	font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+	font-size: smaller;
+	color: white;
+}
+
+.db-hdr input, .db-hdr select {
+	font-size: smaller;
+	color: black;
+}
+
+.db-hdr .pagination a {
+	font-size: smaller;
+	padding: 4px;
+}
+
+
+div.dt-button-collection div.dropdown-menu{
+	background-color: #dddddd;
+	border: 1px solid #c0c0c0;
+	min-width:50%;
+}
+.custom-dt-btn a.dt-button{
+	background-color: transparent;
+	font-size: smaller;
+	color: #212529;
+}
+.custom-dt-btn a.dt-button:hover{
+	background-color: transparent;
+	color: #115094;
+	font-weight: bold;
+}
+.custom-dt-btn a.dt-button.active a, a.dt-button.active a:hover, a.dt-button.active a:focus{
+	color: #337ab6;
+	background-color: transparent;
+	font-weight: bold;
+}
+.custom-dt-btn a.dt-button.dropdown-item.active::before{
+	content: '✔ ';
+}
+
+.db-card-chart {
+	background-color: #F5F5F5;
+	border-radius: 20px;
+}
+
+.modebar {
+	padding-right: 15px !important;
+}
+
+.dev_alarm {
+	--bs-table-accent-bg: #bb0101 !important;;
+}
+
+/* background-color: #F5F5F5; */
