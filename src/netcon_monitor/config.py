@@ -1,11 +1,12 @@
 import logging
+import netcon_monitor.monitor.input as netinput
 
 
 class Config(object):
     """This is the basic configuration class for Netcon Monitor."""
 
-    #This will be populated after load from the setup.cfg value, any value specified here will be overwritten.
-    VERSION=""
+    # This will be populated after load from the setup.cfg value, any value specified here will be overwritten.
+    VERSION = ""
 
     ###################################################################################################
     # General settings
@@ -25,20 +26,26 @@ class Config(object):
     MONITOR_HOSTS_PERIODS = 6
 
     # List networks to monitor (leave empty to monitor all connections on all networks)
-    MONITORED_NETWORKS=["192.168.0.0/24", "192.168.13.0/24"]
+    MONITORED_NETWORKS = ["192.168.0.0/24", "192.168.13.0/24"]
 
     # To get connection from a remote host (e.g. router), REMOTE_HOSTNAME must be specified, as well as
     # credentials (either, REMOTE_PASS, REMOTE_PRIVATE_KEY, or REMOTE_PRIVATE_KEY_FILE, or have them
     # in the user's .ssh folder
-    REMOTE_HOSTNAME = "192.168.0.1" # Remote host to connect, IP or hostname. Default to empty (local monitoring)
-    REMOTE_PORT = 22                # Port to use. Defaults to 22
-    REMOTE_USER = "viv"             # User to use for connection. Defaults to root
-    REMOTE_PASS = None              # Use password to connect
-    REMOTE_PRIVATE_KEY = None       # Use private key to connect
+    REMOTE_HOSTNAME = "192.168.0.1"  # Remote host to connect, IP or hostname. Default to empty (local monitoring)
+    REMOTE_PORT = 22  # Port to use. Defaults to 22
+    REMOTE_USER = "viv"  # User to use for connection. Defaults to root
+    REMOTE_PASS = None  # Use password to connect
+    REMOTE_PRIVATE_KEY = None  # Use private key to connect
     REMOTE_PRIVATE_KEY_FILE = None  # Use the private key in the specified file to connect
 
     # Path where to store the database
     DATABASE_PATH = "/Users/viv/dev/netcon_monitor/etc/dev/config"
+
+    # Method to use to detect new connection on the devices. Must extend NetconMonInput
+    CONNECTION_DETECTION_CLASS=netinput.NetconMonIpCommandInput
+
+    # Method to use to detect devices hostnames. Must extend NetconMonResolver
+    HOSTNAME_DETECTION_CLASS=netinput.NetconMonAsusCommandResolver
 
     ###################################################################################################
     # Network alarm settings
@@ -47,10 +54,10 @@ class Config(object):
 
     # To enable telegram notifications, both keys must be filled
     ENABLE_TELEGRAM = True
-    TELEGRAM_BOT_KEY="1110478838:AAGZVZaDmjUPffFTIxpgLVIKI5r7yg5h_8g"
-    TELEGRAM_CHAT_ID="-489291168"
-    TELEGRAM_MESSAGE="<b>{} new connections to Dwarfnet</b>:\n\n{}"
-    TELEGRAM_MESSAGE_DEVICE="- {}, {}, {}, {}\n"
+    TELEGRAM_BOT_KEY = "1110478838:AAGZVZaDmjUPffFTIxpgLVIKI5r7yg5h_8g"
+    TELEGRAM_CHAT_ID = "-489291168"
+    TELEGRAM_MESSAGE = "<b>{} new connections to Dwarfnet</b>:\n\n{}"
+    TELEGRAM_MESSAGE_DEVICE = "- {}, {}, {}, {}\n"
 
     ###################################################################################################
     # Dashboard server settings

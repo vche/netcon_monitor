@@ -1,9 +1,9 @@
 import logging
 import signal
 import sys
+
 from netcon_monitor.dashboard.app import NetconMonApp
 from netcon_monitor.monitor.db import NetconMonDb
-from netcon_monitor.monitor.input import NetconMonIpCommandInput, NetconMonAsusCommandResolver
 from netcon_monitor.monitor.monitor import NetconMonMonitor
 
 # Next steps:
@@ -12,7 +12,7 @@ from netcon_monitor.monitor.monitor import NetconMonMonitor
 # create docker
 
 
-ENVVAR_CONFIG="NETCONMON_CONFIG"
+ENVVAR_CONFIG = "NETCONMON_CONFIG"
 log = logging.getLogger(__name__)
 
 
@@ -29,17 +29,23 @@ def main() -> None:
     dashboard = NetconMonApp(None, "netcon_monitor.config.Config", ENVVAR_CONFIG)
     setup_logging(logfile=dashboard.config["LOG_FILE"], loglevel=dashboard.config.get("LOG_LEVEL"))
     database = NetconMonDb(dashboard.config)
-    monitor = NetconMonMonitor(NetconMonIpCommandInput, NetconMonAsusCommandResolver, dashboard.config, database)
+    monitor = NetconMonMonitor(
+        dashboard.config["CONNECTION_DETECTION_CLASS"],
+        dashboard.config["HOSTNAME_DETECTION_CLASS"],
+        dashboard.config, database
+    )
     log.info(f"Started netcon_monitor {dashboard.config['VERSION']}")
 
     def signal_handler(sig, frame):
         monitor.stop()
         sys.exit(0)
+
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGILL, signal_handler)
 
     monitor.start()
     dashboard.run(database)
+
 
 if __name__ == "__main__":
     main()

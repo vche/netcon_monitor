@@ -5,3 +5,6 @@ pyvenv
 docs/doc
 __pycache__
 pyvenv
+*.db
+etc/dev
+

@@ -1,7 +1,9 @@
 import logging
-import telegram
 from datetime import datetime, timedelta
 from typing import Any, Dict
+
+import telegram
+
 from netcon_monitor.monitor.db import NetconMonDbItem
 
 
@@ -30,13 +32,14 @@ class NetconMonTelegramAlarmNotifier(NetconMonAlarmNotifier):
 
         content = ""
         for dev in device_list:
-            content +=self._message_device.format(dev.mac, dev.manufacturer, dev.ip, dev.hostname)
+            content += self._message_device.format(dev.mac, dev.manufacturer, dev.ip, dev.hostname)
 
         self.logger.debug(f"Sending alert to {self._chat_id}: {self._message.format(len(device_list), content)}")
         self._bot.send_message(
             chat_id=self._chat_id,
             text=self._message.format(len(device_list), content),
-            parse_mode=telegram.ParseMode.HTML)
+            parse_mode=telegram.ParseMode.HTML,
+        )
 
 
 class NetconMonIfttAlarmNotifier(NetconMonAlarmNotifier):
@@ -61,7 +64,6 @@ class NetconMonAlarm:
         if device.in_alarm() and datetime.now() - device.last_seen > self._alarm_ttl:
             self.logger.info(f"Clearing alarm for device {device.mac}")
             device.set_alarm(in_alarm=False)
-
 
         # If the device is not allowed and not in alarm, raise alarm
         if not device.in_alarm() and not device.allowed:

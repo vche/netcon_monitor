@@ -1,23 +1,20 @@
-## pytemplate
+## Netcon Monitor
 
-Template for a pip python package with:
-- tox pytest based unit tests
-- pytest code coverage
-- isort/black autoformat
-- flake8 format checking
-- mypy type checking
-- sphinx doc generation
+netcon_mon monitors new connections to the specify networks, and send notifications for unkonwn devices.
+Start with `./netcon_monitor` or start the docker image and connect to http://<host>:9334/
 
-To use this template and create a new project:
+Specify the configuration file to use with environment variable `NETCONMON_CONFIG`.
+e.g. NETCONMON_CONFIG=/config/config.py
 
-```sh
-git clone https://github.com/vche/pytemplate.git
-./templatize.sh $NEW_PROJECT_NAME $NEW_PROJECT_PATH
-```
+For docker, the config file path is `/config/config.py` so map the `/config` volume or file directly
 
-The new project will be created in $NEW_PROJECT_PATH/$NEW_PROJECT_NAME
-To run test and generate doc, see README
-
+The config.py file (example in etc/config.py with default values in src/config.py) allows configuring the tool:
+- Dashboard (web UI)
+- Notification (currently only support telegram alerts)
+- Networks to monitor
+- Target to connect to (to get the connected hosts, typically your router)
+- Connected devices detection. Defaults to NetconMonIpCommandInput to use `ip neigh` but NetconMonArpCommandInput is also available to use `arp` detection, and other methods can be implemented by extending NetconMonInput
+- Devices hostnames detection. Defaults to NetconMonAsusCommandResolver to use asus router specific methods but other methods can be implemented by extending NetconMonResolver
 
 ### Development
 

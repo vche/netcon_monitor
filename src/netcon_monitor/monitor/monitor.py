@@ -1,8 +1,9 @@
 import logging
 import time
 from threading import Thread
-from netcon_monitor.monitor.db import NetconMonDb, NetconMonDbItem
+
 from netcon_monitor.monitor.alarm import NetconMonAlarm
+from netcon_monitor.monitor.db import NetconMonDb, NetconMonDbItem
 
 
 class NetconMonMonitor(Thread):
@@ -43,7 +44,7 @@ class NetconMonMonitor(Thread):
 
             self._alarm.send_pending_alarms()
             time.sleep(self._period)
-            loops +=1
+            loops += 1
 
     def stop(self):
         self._running = False

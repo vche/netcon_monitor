@@ -1,10 +1,11 @@
 import json
 import logging
-import requests
 import subprocess
-from ipaddress import ip_address, ip_network, IPv4Address
-from paramiko import SSHClient, AutoAddPolicy
+from ipaddress import IPv4Address, ip_address, ip_network
 from typing import Any, Dict, List, Tuple
+
+import requests
+from paramiko import AutoAddPolicy, SSHClient
 
 
 class MacAddress:
@@ -21,11 +22,15 @@ class MacAddress:
         return f"{self.__class__.__name__}({self})"
 
     def get_manufacturer(self):
-        url = "https://api.macvendors.com/"     
+        url = "https://api.macvendors.com/"
         response = requests.get(url + self.__str__())
         if response.status_code != 200:
             return None
         return response.content.decode()
+
+
+class NetconMonError(Exception):
+    pass
 
 
 class NetconMonInput:
@@ -76,19 +81,23 @@ class NetconMonCommand:
         return ssh_client
 
     def connect(self) -> None:
-        self._ssh_client.connect(
-            hostname=self._config["REMOTE_HOSTNAME"],
-            port=self._config["REMOTE_PORT"],
-            username=self._config["REMOTE_USER"],
-            password=self._config["REMOTE_PASS"],
-            pkey=self._config["REMOTE_PRIVATE_KEY"],
-            key_filename=self._config["REMOTE_PRIVATE_KEY_FILE"],
-        )
+        try:
+            self._ssh_client.connect(
+                hostname=self._config["REMOTE_HOSTNAME"],
+                port=self._config["REMOTE_PORT"],
+                username=self._config["REMOTE_USER"],
+                password=self._config["REMOTE_PASS"],
+                pkey=self._config["REMOTE_PRIVATE_KEY"],
+                key_filename=self._config["REMOTE_PRIVATE_KEY_FILE"],
+            )
+        except TimeoutError as e:
+            raise NetconMonError
+
 
     def disconnect(self) -> None:
         self._ssh_client.close()
 
-    def run_command(self, command: str, autconnect = True) -> Tuple[str, str]:
+    def run_command(self, command: str, autconnect=True) -> Tuple[str, str]:
         if self._ssh_client:
             if autconnect:
                 self.connect()
@@ -111,16 +120,22 @@ class NetconMonArpCommandInput(NetconMonInput, NetconMonCommand):
         NetconMonInput.__init__(self, config)
 
     def get_connected_devices(self) -> List[Tuple[IPv4Address, MacAddress]]:
-        command_stdout, _ = self.run_command(self.SHELL_COMMAND)
         devices = []
-        for line in command_stdout.splitlines():
-            try:
-                tokens = line.split(" ")
-                ip = ip_address(tokens[1].replace("(", "").replace(")", ""))
-                mac = MacAddress(tokens[3])
-                devices.append((ip, mac))
-            except (ValueError, IndexError) as e:
-                self.logger.warning(f"Invalid output or ip, skipping line {line}")
+        try:
+            command_stdout, _ = self.run_command(self.SHELL_COMMAND)
+
+            # Parse results
+            for line in command_stdout.splitlines():
+                try:
+                    tokens = line.split(" ")
+                    ip = ip_address(tokens[1].replace("(", "").replace(")", ""))
+                    mac = MacAddress(tokens[3])
+                    devices.append((ip, mac))
+                except (ValueError, IndexError) as e:
+                    self.logger.warning(f"Invalid output or ip, skipping line {line}: {e}")
+        except NetconMonError as e:
+            self.logger.error(f"Error executing commant: {e}")
+
         return devices
 
 
@@ -133,18 +148,25 @@ class NetconMonIpCommandInput(NetconMonInput, NetconMonCommand):
         NetconMonInput.__init__(self, config)
 
     def get_connected_devices(self) -> List[Tuple[IPv4Address, MacAddress]]:
-        command_stdout, _ = self.run_command(self.SHELL_COMMAND)
         devices = []
-        for line in command_stdout.splitlines():
-            try:
-                tokens = line.split(" ")
-                ip = ip_address(tokens[0])
-                mac = MacAddress(tokens[4])
-                if tokens[5].upper() not in self.EXCLUDE_STATES:
-                    devices.append((ip, mac))
-            except (ValueError, IndexError) as e:
-                self.logger.warning(f"Invalid output or ip, skipping line {line}")
+        try:
+            command_stdout, _ = self.run_command(self.SHELL_COMMAND)
+
+            # Parse results
+            for line in command_stdout.splitlines():
+                try:
+                    tokens = line.split(" ")
+                    ip = ip_address(tokens[0])
+                    mac = MacAddress(tokens[4])
+                    if tokens[5].upper() not in self.EXCLUDE_STATES:
+                        devices.append((ip, mac))
+                except (ValueError, IndexError) as e:
+                    self.logger.warning(f"Invalid output or ip, skipping line {line}: {e}")
+        except NetconMonError as e:
+            self.logger.error(f"Error executing commant: {e}")
+
         return devices
+
 
 class NetconMonAsusCommandResolver(NetconMonResolver, NetconMonCommand):
     SHELL_COMMAND_DNS_CFG = ["grep", '"dhcp-host"', "/etc/dnsmasq.conf"]
@@ -153,36 +175,39 @@ class NetconMonAsusCommandResolver(NetconMonResolver, NetconMonCommand):
 
     def __init__(self, config: Dict[str, Any]):
         NetconMonCommand.__init__(self, config)
-        NetconMonResolver   .__init__(self, config)
+        NetconMonResolver.__init__(self, config)
 
     def get_hostname_mapping(self) -> Dict[MacAddress, str]:
-        self.connect()
-        mapping = {}
+        try:
+            self.connect()
+            mapping = {}
 
-        # Get asus resolved config
-        command_stdout, _ = self.run_command(self.SHELL_COMMAND_NMP, autconnect = False)
-        payload = json.loads(command_stdout)
-        for mac in payload:
-            if payload[mac]["name"]:
-                mapping[mac] = payload[mac]["name"]
+            # Get asus resolved config
+            command_stdout, _ = self.run_command(self.SHELL_COMMAND_NMP, autconnect=False)
+            payload = json.loads(command_stdout)
+            for mac in payload:
+                if payload[mac]["name"]:
+                    mapping[mac] = payload[mac]["name"]
 
-        # Get dns static host config
-        command_stdout, _ = self.run_command(self.SHELL_COMMAND_DNS_CFG, autconnect = False)
-        for line in command_stdout.splitlines():
-            tokens = line.split(',')
-            mapping[tokens[0].replace('dhcp-host=','')] = tokens[2]
+            # Get dns static host config
+            command_stdout, _ = self.run_command(self.SHELL_COMMAND_DNS_CFG, autconnect=False)
+            for line in command_stdout.splitlines():
+                tokens = line.split(",")
+                mapping[tokens[0].replace("dhcp-host=", "")] = tokens[2]
 
-        # Get UI static host config
-        command_stdout, _ = self.run_command(self.SHELL_COMMAND_CLI_CFG, autconnect = False)
-        for dev in command_stdout.split(">>"):
-            tokens = dev.replace("<","").split(">")
-            entry = list(filter(None, tokens))
-            if entry:
-                mapping[entry[1]] = entry[0]
+            # Get UI static host config
+            command_stdout, _ = self.run_command(self.SHELL_COMMAND_CLI_CFG, autconnect=False)
+            for dev in command_stdout.split(">>"):
+                tokens = dev.replace("<", "").split(">")
+                entry = list(filter(None, tokens))
+                if entry:
+                    mapping[entry[1]] = entry[0]
 
-        if self.logger.isEnabledFor(logging.DEBUG):
-            for dev in mapping:
-                print(f"{dev}: {mapping[dev]}")
+            if self.logger.isEnabledFor(logging.DEBUG):
+                for dev in mapping:
+                    print(f"{dev}: {mapping[dev]}")
+        except NetconMonError as e:
+            self.logger.error(f"Error retrieving hostnames: {e}")
 
         self.disconnect()
         return mapping

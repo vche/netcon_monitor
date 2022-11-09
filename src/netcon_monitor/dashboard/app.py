@@ -1,12 +1,9 @@
-import base64
 import os
-import re
-import time
-import urllib.parse
-from copy import deepcopy
 from importlib import metadata
+
 from flask import Blueprint, Flask, current_app, render_template
-from netcon_monitor.monitor.db import NetconMonDb, NetconMonDbItem
+
+from netcon_monitor.monitor.db import NetconMonDb
 
 # from pyweblogalyzer.dataset.weblogdata import WebLogData
 
@@ -14,7 +11,6 @@ appblueprint = Blueprint("dashboard", __name__)
 
 
 class NetconMonApp(Flask):
-
     def __init__(self, dataset, config_class, config_env: None):
         super().__init__(__name__)
         # self._dataset = dataset
@@ -24,8 +20,8 @@ class NetconMonApp(Flask):
     def _load_config(self, config_class, config_env):
         self.config.from_object(config_class)
         if config_env and os.environ.get(config_env):
-            self.config.from_envvar(config_env)        
-        self.config['VERSION'] = metadata.version('netcon_monitor')
+            self.config.from_envvar(config_env)
+        self.config["VERSION"] = metadata.version("netcon_monitor")
 
     def run(self, database: NetconMonDb):
         """Start the web app."""
@@ -35,7 +31,7 @@ class NetconMonApp(Flask):
         self.logger.info("Dashboard started, listening on port {self.config['PORT']}")
 
     def render_index(self):
-        return render_template('index.html', config=self.config, db=self._db)
+        return render_template("index.html", config=self.config, db=self._db)
 
     def allow_device(self, mac_str: str, allow: bool) -> bool:
         """Set a device as allowed, reset alarm , and return the device status."""
@@ -54,13 +50,13 @@ def get_index():
 
 @appblueprint.route("/allow/<dev_key>", methods=["GET"])
 def enable_device(dev_key):
-    mac_str = ":".join([dev_key[i:i+2] for i in range(0, len(dev_key), 2)])
+    mac_str = ":".join([dev_key[i : i + 2] for i in range(0, len(dev_key), 2)])
     status = current_app.allow_device(mac_str, True)
-    return {'status': status}
+    return {"status": status}
 
 
 @appblueprint.route("/disallow/<dev_key>", methods=["GET"])
 def disable_device(dev_key):
-    mac_str = ":".join([dev_key[i:i+2] for i in range(0, len(dev_key), 2)])
+    mac_str = ":".join([dev_key[i : i + 2] for i in range(0, len(dev_key), 2)])
     status = current_app.allow_device(mac_str, False)
-    return {'status': status}
+    return {"status": status}
