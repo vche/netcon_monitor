@@ -7,4 +7,4 @@ __pycache__
 pyvenv
 *.db
 etc/dev
-
+etc/dev/config
