@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict
@@ -17,14 +18,16 @@ class NetconMonAlarmNotifier:
 
 
 class NetconMonTelegramAlarmNotifier(NetconMonAlarmNotifier):
-    def __init__(self, config: Dict[str, Any]) -> None:
+    def __init__(self, config: Dict[str, Any], loop=None) -> None:
         super().__init__(config)
+        self.loop = loop or asyncio.new_event_loop()
         self._bot_key = self._config.get("TELEGRAM_BOT_KEY")
         self._chat_id = self._config.get("TELEGRAM_CHAT_ID")
         self._message_device = self._config.get("TELEGRAM_MESSAGE_DEVICE")
         self._message = self._config.get("TELEGRAM_MESSAGE")
         self._bot = telegram.Bot(token=self._bot_key)
         self.logger = logging.getLogger(__name__)
+        self.loop.run_until_complete(self._bot.initialize())
 
     def raise_alarm(self, device_list):
         if not device_list:
@@ -35,11 +38,17 @@ class NetconMonTelegramAlarmNotifier(NetconMonAlarmNotifier):
             content += self._message_device.format(dev.mac, dev.manufacturer, dev.ip, dev.hostname)
 
         self.logger.debug(f"Sending alert to {self._chat_id}: {self._message.format(len(device_list), content)}")
-        self._bot.send_message(
-            chat_id=self._chat_id,
-            text=self._message.format(len(device_list), content),
-            parse_mode=telegram.ParseMode.HTML,
+        self.loop.run_until_complete(
+            self._bot.send_message(
+                chat_id=self._chat_id,
+                text=self._message.format(len(device_list), content),
+                parse_mode="HTML",
+            )
         )
+
+    def close(self):
+        self.loop.run_until_complete(self.bot.shutdown())
+        self.loop.close()
 
 
 class NetconMonIfttAlarmNotifier(NetconMonAlarmNotifier):

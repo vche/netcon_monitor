@@ -1,5 +1,5 @@
 # FROM python:3
-FROM ubuntu:focal
+FROM ubuntu:jammy
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential libssl-dev libffi-dev python3-dev cargo \
