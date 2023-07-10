@@ -53,11 +53,18 @@ class Config(object):
     ALARM_TTL_SECS = 1800
 
     # To enable telegram notifications, both keys must be filled
-    ENABLE_TELEGRAM = True
-    TELEGRAM_BOT_KEY = "1110478838:AAGZVZaDmjUPffFTIxpgLVIKI5r7yg5h_8g"
-    TELEGRAM_CHAT_ID = "-489291168"
+    ENABLE_TELEGRAM = False
+    TELEGRAM_BOT_KEY = "1110478838:AAGZVZdZqjUPffFTIxpgLVIKI5r7yg5h_8g"
+    TELEGRAM_CHAT_ID = "-489391168"
     TELEGRAM_MESSAGE = "<b>{} new connections to Dwarfnet</b>:\n\n{}"
     TELEGRAM_MESSAGE_DEVICE = "- {}, {}, {}, {}\n"
+
+    # To enable telegram notifications, both keys must be filled
+    ENABLE_DISCORD = True
+    DISCORD_WEBHOOK = "1120474838:https://discord.com/api/webhooks/1121501560833323090/dGZjhM35M6Vh-Iy1F9H"
+    DISCORD_WEBHOOK_USER = "Network connections monitor"
+    DISCORD_MESSAGE = "**{} new connections to Dwarfnet**:\n\n{}"
+    DISCORD_MESSAGE_DEVICE = "- {}, {}, {}, {}\n"
 
     ###################################################################################################
     # Dashboard server settings

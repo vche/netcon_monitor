@@ -8,6 +8,15 @@ import attr
 
 from netcon_monitor.monitor.input import MacAddress
 
+DEFAULT_TIME = datetime(2000, 1, 1, 0, 0)
+DEFAULT_TIME_STR = DEFAULT_TIME.isoformat()
+
+def ts_from_str(ts):
+    "Convert a datatime strint to an object, unless it's none or empty string"
+    if ts and ts not in ["-", "None"]:
+        return datetime.fromisoformat(ts)
+    return None
+
 
 @attr.s
 class NetconMonDbItem():
@@ -40,9 +49,9 @@ class NetconMonDbItem():
             ip=raw_dict.get(cls.DICT_KEY_IP, cls.DEFAULT_IP),
             hostname=raw_dict.get(cls.DICT_KEY_HOSTNAME),
             manufacturer=raw_dict.get(cls.DICT_KEY_MANUFACTURER),
-            last_seen=datetime.fromisoformat(raw_dict.get(cls.DICT_KEY_LASTSEEN)),
-            alarm_timestamp=datetime.fromisoformat(raw_dict.get(cls.DICT_KEY_ALARMTS)),
-            allowed=raw_dict.get(cls.DICT_KEY_ALLOWED),
+            last_seen=datetime.fromisoformat(raw_dict.get(cls.DICT_KEY_LASTSEEN) or DEFAULT_TIME_STR),
+            alarm_timestamp=ts_from_str(raw_dict.get(cls.DICT_KEY_ALARMTS)),
+            allowed=raw_dict.get(cls.DICT_KEY_ALLOWED, False),
         )
 
     def to_dict(self) -> str:

@@ -8,6 +8,8 @@ import requests
 from paramiko import AutoAddPolicy, SSHClient
 
 
+log = logging.getLogger(__name__)
+
 class MacAddress:
     def __init__(self, mac_str: str) -> None:
         self._bytes = mac_str.split(":")
@@ -23,7 +25,11 @@ class MacAddress:
 
     def get_manufacturer(self):
         url = "https://api.macvendors.com/"
-        response = requests.get(url + self.__str__())
+        try:
+            response = requests.get(url + self.__str__())
+        except Exception as e:
+            log.error(f"Unable to get mac info for {self.__str__()}from api.macvendors.com :{e}")
+            return None
         if response.status_code != 200:
             return None
         return response.content.decode()
